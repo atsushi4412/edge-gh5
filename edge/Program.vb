@@ -148,16 +148,11 @@ Module Program
             ii = index + 1
         End If
 
+
         'ポイントの切れ刃ベクトル
         Base_EdgeLine(edgeCoord(i), edgeCoord(ii), edgeVector)
 
         Dim deg, deg2 As Double
-
-        'Dim deg3, deg4 As Double
-        'Base_EdgeLine(index, deg4, deg3)
-        'deg = deg4
-        'deg2 = deg3
-
         'ポイントを切れ刃ベクトルとZ軸が平行になるようX軸回転
         deg = IIf(edgeVector(VECTOR.Z) = 0, 0, D_ATan(edgeVector(VECTOR.Y) / edgeVector(VECTOR.Z))) * -1
         Rotation_X(edgePoint, deg)
@@ -166,12 +161,12 @@ Module Program
         deg2 = IIf(edgeVector(VECTOR.Z) = 0, 0, D_ATan(edgeVector(VECTOR.X) / edgeVector(VECTOR.Z)))
         Rotation_Y(edgePoint, deg2)
 
+        '一旦端数を切る
+        edgePoint(VECTOR.X) = Round(edgePoint(VECTOR.X), 4, MidpointRounding.AwayFromZero)
+        edgePoint(VECTOR.Y) = Round(edgePoint(VECTOR.Y), 4, MidpointRounding.AwayFromZero)
+        edgePoint(VECTOR.Z) = Round(edgePoint(VECTOR.Z), 4, MidpointRounding.AwayFromZero)
 
 
-        If index = 400 Then
-            Dim kk As Double = 0
-
-        End If
         'ポイントでの逃げ角（YZ回転考慮）
         Dim pRel As Double = D_ATan(D_Tan(relAngle) / (1 / D_Cos(phaseAngle - deg)))
 
@@ -184,9 +179,6 @@ Module Program
             cf = (L - webDiameter / 2) / (diameter - webDiameter) / 2
         End If
         Dim pScp As Double = D_ATan(1 / D_Cos(phaseAngle + deg) / (D_Tan(scpAngle * cf) * (1 / D_Cos(deg2))))
-        'Dim pScp As Double = D_ATan((D_Tan(scpAngle * cf) * (1 / D_Cos(deg2))) / (1 / D_Cos(phaseAngle + deg)))
-
-
 
         'ポイントでのホーニング稜線ポイント計算
         Dim a, b, c, d, e, f, x, y As Double
@@ -198,22 +190,14 @@ Module Program
         f = (D_Tan(pScp) + D_Tan(90 - honingAngle)) * D_Tan(honingAngle) * honingWidth * -1
         SimultaneousEquations(a, b, c, d, e, f, x, y)
 
-
-
         Dim x1, y1, x2, y2 As Double
         x1 = x
         y1 = (-D_Tan(90 - honingAngle)) * x + y
         x2 = x1 + honingWidth * D_Tan(honingAngle)
         y2 = (-D_Tan(90 - honingAngle)) * x2 + y
 
-
-
         Dim relEdgePoint As New List(Of Double)(New Double() {edgePoint(VECTOR.X) + y1, edgePoint(VECTOR.Y) + x1, edgePoint(VECTOR.Z)})
         Dim scpEdgePoint As New List(Of Double)(New Double() {edgePoint(VECTOR.X) + y2, edgePoint(VECTOR.Y) + x2, edgePoint(VECTOR.Z)})
-
-        'Dim relEdgePoint As New List(Of Double)(New Double() {edgePoint(VECTOR.X), edgePoint(VECTOR.Y), edgePoint(VECTOR.Z)})
-        'Dim scpEdgePoint As New List(Of Double)(New Double() {edgePoint(VECTOR.X), edgePoint(VECTOR.Y), edgePoint(VECTOR.Z)})
-
 
         'ポイント座標をYZ回転して元の位置に戻す
         Rotation_Y(relEdgePoint, -deg2)
@@ -222,7 +206,6 @@ Module Program
         Rotation_X(scpEdgePoint, -deg)
 
         '完成
-
         relCoord.Add(relEdgePoint)
         scpCoord.Add(scpEdgePoint)
 
@@ -294,11 +277,18 @@ Module Program
     Private Function Base_EdgeLine(ByVal p1 As List(Of Double), ByVal p2 As List(Of Double),
                               ByVal line As List(Of Double)) As Integer
 
+        Dim xx As Double = p2(VECTOR.X) - p1(VECTOR.X)
+        Dim yy As Double = p2(VECTOR.Y) - p1(VECTOR.Y)
+        Dim zz As Double = p2(VECTOR.Z) - p1(VECTOR.Z)
+        Dim sqr As Double = Sqrt(xx ^ 2 + yy ^ 2 + zz ^ 2)
 
+        xx /= sqr
+        yy /= sqr
+        zz /= sqr
 
-        line.Add(p2(VECTOR.X) - p1(VECTOR.X))
-        line.Add(p2(VECTOR.Y) - p1(VECTOR.Y))
-        line.Add(p2(VECTOR.Z) - p1(VECTOR.Z))
+        line.Add(xx)
+        line.Add(yy)
+        line.Add(zz)
 
         Return 0
     End Function
