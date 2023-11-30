@@ -129,6 +129,7 @@ Module Program
     Private Function Get_HoningEdgePoint(ByVal index As Integer) As Integer
 
         Dim edgePoint As New List(Of Double)(New Double() {edgeCoord(index)(VECTOR.X), edgeCoord(index)(VECTOR.Y), edgeCoord(index)(VECTOR.Z)})
+
         Dim edgeVector As New List(Of Double)
 
         Dim el As Integer = 10
@@ -162,9 +163,7 @@ Module Program
         Rotation_Y(edgePoint, deg2)
 
         '一旦端数を切る
-        edgePoint(VECTOR.X) = Round(edgePoint(VECTOR.X), 4, MidpointRounding.AwayFromZero)
-        edgePoint(VECTOR.Y) = Round(edgePoint(VECTOR.Y), 4, MidpointRounding.AwayFromZero)
-        edgePoint(VECTOR.Z) = Round(edgePoint(VECTOR.Z), 4, MidpointRounding.AwayFromZero)
+
 
 
         'ポイントでの逃げ角（YZ回転考慮）
