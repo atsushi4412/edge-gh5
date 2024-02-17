@@ -19,6 +19,11 @@ Module Program
     Dim honingAngle As Double = 25
     Dim honingWidth As Double = 0.1
 
+    Dim oldHoningWidth As Double = 0.5
+
+    Dim Z_Unit As Double
+
+
 
 
 
@@ -121,12 +126,39 @@ Module Program
     End Function
 
 
-    Public Sub Generate_HoningEdge()
+    Public Sub Generate_B()
+
+        '逃げ側稜線基準
+        For i As Integer = 0 To relCoord.Count - 1
+
+        Next
 
     End Sub
 
+    Public Sub Get_scpIntersectPoint(ByVal relpoint As List(Of Double), ByRef scpPoint As List(Of Double))
 
-    Private Function Get_HoningEdgePoint(ByVal index As Integer) As Integer
+        Const RANGE As Integer = 5
+
+
+
+
+
+
+    End Sub
+
+    Public Function Get_GrindSpeed_coefficient(ByVal index As Integer) As Double
+        Dim oldHoningWidth As Double = 0.5
+        Dim area_1, area_2 As Double
+
+        Get_HoningEdgePoint(index, oldHoningWidth, area_1)
+        Get_HoningEdgePoint(index, area:=area_2)
+
+        Return area_2 / (area_2 - area_1)
+
+    End Function
+
+
+    Private Function Get_HoningEdgePoint(ByVal index As Integer, Optional ByVal hw As Double = 0, Optional ByRef area As Double = 0) As Integer
 
         Dim edgePoint As New List(Of Double)(New Double() {edgeCoord(index)(VECTOR.X), edgeCoord(index)(VECTOR.Y), edgeCoord(index)(VECTOR.Z)})
 
@@ -134,7 +166,7 @@ Module Program
 
         Dim el As Integer = 10
 
-
+        If hw = 0 Then hw = honingWidth
 
         Dim i As Integer
         Dim ii As Integer
@@ -186,17 +218,22 @@ Module Program
         c = 0
         d = D_Tan(pScp) + D_Tan(90 - honingAngle)
         e = -1
-        f = (D_Tan(pScp) + D_Tan(90 - honingAngle)) * D_Tan(honingAngle) * honingWidth * -1
+        f = (D_Tan(pScp) + D_Tan(90 - honingAngle)) * D_Tan(honingAngle) * hw * -1
         SimultaneousEquations(a, b, c, d, e, f, x, y)
 
         Dim x1, y1, x2, y2 As Double
         x1 = x
         y1 = (-D_Tan(90 - honingAngle)) * x + y
-        x2 = x1 + honingWidth * D_Tan(honingAngle)
+        x2 = x1 + hw * D_Tan(honingAngle)
         y2 = (-D_Tan(90 - honingAngle)) * x2 + y
 
         Dim relEdgePoint As New List(Of Double)(New Double() {edgePoint(VECTOR.X) + y1, edgePoint(VECTOR.Y) + x1, edgePoint(VECTOR.Z)})
         Dim scpEdgePoint As New List(Of Double)(New Double() {edgePoint(VECTOR.X) + y2, edgePoint(VECTOR.Y) + x2, edgePoint(VECTOR.Z)})
+
+        '/// 面積計算 ///
+        area = ((edgePoint(VECTOR.Y) - scpEdgePoint(VECTOR.Y)) * (relEdgePoint(VECTOR.X) - scpEdgePoint(VECTOR.X)) _
+              - (relEdgePoint(VECTOR.Y) - scpEdgePoint(VECTOR.Y)) * (edgePoint(VECTOR.X) - scpEdgePoint(VECTOR.X))) _
+             / 2
 
         'ポイント座標をYZ回転して元の位置に戻す
         Rotation_Y(relEdgePoint, -deg2)
